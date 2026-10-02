@@ -9,3 +9,6 @@ public/vendor/
 coverage/
 config.php
 bdd.php
+
+playwright-report/
+test-results/

@@ -35,7 +35,9 @@ export class ApiClient {
         response: { error: 'Réponse non JSON ou connexion interrompue' },
         time: new Date(),
       });
-      throw new Error('Connexion impossible ou réponse non JSON');
+      throw new Error('Connexion impossible ou réponse non JSON', {
+        cause: error,
+      });
     }
     this.onRequest({
       path,

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isSimpleRing } from './geometry.js';
 const name = z
   .string()
   .trim()
@@ -63,7 +64,11 @@ export const listSchema = paginationSchema
       .string()
       .transform((s, ctx) => {
         const parts = s.split(',').map(Number);
-        if (parts.length !== 4 || parts.some((p) => !Number.isFinite(p))) {
+        if (
+          parts.length !== 4 ||
+          s.split(',').some((part) => part.trim() === '') ||
+          parts.some((p) => !Number.isFinite(p))
+        ) {
           ctx.addIssue({
             code: 'custom',
             message: 'Expected west,south,east,north',
@@ -111,6 +116,10 @@ const ring = z
   .array(z.tuple([longitude, latitude]))
   .min(4)
   .max(500)
+  .refine(
+    isSimpleRing,
+    'Simple polygon without crossing edges or antimeridian required',
+  )
   .refine((points) => {
     const first = points[0]!;
     const last = points[points.length - 1]!;

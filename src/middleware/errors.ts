@@ -38,14 +38,12 @@ export const errorHandler: ErrorRequestHandler = (
     console.error(
       JSON.stringify({ level: 'error', requestId: res.locals.requestId, code }),
     );
-  res
-    .status(status)
-    .json({
-      error: {
-        code,
-        message,
-        ...(details ? { details } : {}),
-        requestId: res.locals.requestId,
-      },
-    });
+  res.status(status).json({
+    error: {
+      code,
+      message,
+      ...(details ? { details } : {}),
+      requestId: res.locals.requestId,
+    },
+  });
 };

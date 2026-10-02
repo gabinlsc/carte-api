@@ -93,6 +93,7 @@ export function importLegacy(
             }
           : null,
         date.toISOString(),
+        m.id,
       );
     }
     for (const user of data.users)

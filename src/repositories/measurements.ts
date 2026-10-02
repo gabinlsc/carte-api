@@ -41,12 +41,14 @@ export class MeasurementRepository {
     input: MeasurementInput,
     weather: Weather | null,
     createdAt = new Date().toISOString(),
+    legacyId?: number,
   ): Measurement {
     const result = this.db
       .prepare(
-        'INSERT INTO measurements(name,sensor_id,category,latitude,longitude,weather,created_at) VALUES(?,?,?,?,?,?,?)',
+        'INSERT INTO measurements(id,name,sensor_id,category,latitude,longitude,weather,created_at) VALUES(?,?,?,?,?,?,?,?)',
       )
       .run(
+        legacyId ?? null,
         input.name,
         input.sensorId,
         input.category,

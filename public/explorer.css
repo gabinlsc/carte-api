@@ -826,3 +826,13 @@ button {
     scroll-behavior: auto !important;
   }
 }
+.map-tools {
+  z-index: 560;
+}
+.selection {
+  max-height: calc(100% - 200px);
+  overflow: auto;
+}
+.map-stage {
+  overflow: hidden;
+}

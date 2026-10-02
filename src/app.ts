@@ -69,8 +69,7 @@ export function createApp(
           upgradeInsecureRequests: config.NODE_ENV === 'production' ? [] : null,
         },
       },
-      strictTransportSecurity:
-        config.NODE_ENV === 'production',
+      strictTransportSecurity: config.NODE_ENV === 'production',
     }),
   );
   app.use(compression());
