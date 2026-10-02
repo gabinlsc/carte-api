@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Carte · Geospatial workspace</title>
+    <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/vendor/cluster/MarkerCluster.css" />
+    <link rel="stylesheet" href="/vendor/cluster/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="/explorer.css" />
+    <script defer src="/vendor/leaflet/leaflet.js"></script>
+    <script defer src="/vendor/cluster/leaflet.markercluster.js"></script>
+    <script type="module" src="/explorer.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/explorer"
+        ><span class="brand-icon">◈</span> carte<span class="version"
+          >STUDIO / 02</span
+        ></a
+      >
+      <div class="project">
+        <span class="status-dot"></span> Espace cartographique
+        <span class="muted">/</span> <span class="mono">LOCAL API</span>
+      </div>
+      <button id="auth-open" class="subtle">Connexion</button>
+    </header>
+    <main class="workspace">
+      <aside id="sidebar" class="sidebar">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">EXPLORER</span>
+            <h1>Le monde, en données.</h1>
+          </div>
+          <button id="sidebar-close" aria-label="Réduire le panneau">‹</button>
+        </div>
+        <label class="search-box"
+          ><span>⌕</span
+          ><input
+            id="search"
+            type="search"
+            placeholder="Rechercher une salle, un lieu…"
+            aria-label="Rechercher les mesures"
+        /></label>
+        <div class="label-row">
+          <span>Catégorie</span><span class="mono">01 — FILTER</span>
+        </div>
+        <div class="categories" role="group" aria-label="Catégories">
+          <button class="selected" data-category="">Tout</button
+          ><button data-category="sensor">Capteurs</button
+          ><button data-category="station">Stations</button
+          ><button data-category="landmark">Lieux</button>
+        </div>
+        <div class="filter-card">
+          <label class="switch-row"
+            ><span>Limiter à la vue actuelle</span
+            ><input type="checkbox" id="viewport" /></label
+          ><label for="radius"
+            >Rayon autour du centre
+            <output id="radius-value" class="mono">Désactivé</output></label
+          ><input type="range" id="radius" min="0" max="100" value="0" />
+          <div class="range-labels mono">
+            <span>0 km</span><span>100 km</span>
+          </div>
+          <label for="zone-filter">Géofencing</label
+          ><select id="zone-filter">
+            <option value="">Aucune zone</option></select
+          ><button id="zones-more" class="subtle" hidden>
+            Charger d’autres zones
+          </button>
+        </div>
+        <div class="label-row">
+          <span>Mesures</span><span id="result-count" class="mono">—</span>
+        </div>
+        <div id="results" class="results">
+          <div class="empty">Connectez-vous pour explorer vos mesures.</div>
+        </div>
+        <div class="pagination">
+          <button id="previous" disabled aria-label="Page précédente">←</button
+          ><span id="page-label" class="mono">Page 1</span
+          ><button id="next" disabled aria-label="Page suivante">→</button>
+        </div>
+        <div class="sidebar-footer">
+          <span class="status-dot"></span
+          ><span id="connection-state">Connexion requise</span
+          ><span class="mono">v2.0</span>
+        </div>
+      </aside>
+      <section class="map-stage" aria-label="Carte interactive">
+        <div id="map"></div>
+        <button
+          id="sidebar-open"
+          class="floating sidebar-toggle"
+          hidden
+          aria-label="Ouvrir les filtres"
+        >
+          ☷ Filtres
+        </button>
+        <div class="map-title floating">
+          <span class="eyebrow">LIVE GEOSPATIAL</span
+          ><strong>Votre terrain d’exploration</strong
+          ><span id="map-hint">Sélectionnez une mesure pour l’inspecter.</span>
+        </div>
+        <div
+          class="map-tools floating"
+          role="toolbar"
+          aria-label="Outils carte"
+        >
+          <button id="tool-explore" class="selected">↖ Explorer</button
+          ><button id="tool-point">＋ Point</button
+          ><button id="tool-zone">◇ Zone</button
+          ><button id="locate" aria-label="Ma position">◎</button>
+        </div>
+        <button id="finish-zone" class="floating finish-zone" hidden>
+          Terminer la zone
+        </button>
+        <div class="coordinate-bar floating mono">
+          <span id="coordinates">47.75000, −3.36667</span><span>WGS 84</span>
+        </div>
+        <div id="map-notice" class="floating map-notice" hidden></div>
+        <article id="selection" class="floating selection" hidden>
+          <button
+            id="selection-close"
+            class="close"
+            aria-label="Fermer l’inspection"
+          >
+            ×</button
+          ><span class="eyebrow">MEASUREMENT</span>
+          <h2 id="selection-name"></h2>
+          <div id="selection-details"></div>
+        </article>
+      </section>
+      <aside id="composer" class="composer" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">CREATE / GEOJSON</span>
+            <h2>Du terrain à l’API.</h2>
+          </div>
+          <button id="composer-close" aria-label="Fermer la création">×</button>
+        </div>
+        <form id="create-form">
+          <label for="point-name">Nom</label
+          ><input
+            id="point-name"
+            minlength="2"
+            maxlength="120"
+            required
+            placeholder="Nom de la salle ou de la zone"
+          />
+          <div id="point-fields" class="field-grid">
+            <label
+              >Capteur<input
+                id="sensor-id"
+                type="number"
+                min="1"
+                max="100"
+                value="1"
+                required /></label
+            ><label
+              >Catégorie<select id="create-category">
+                <option value="sensor">Capteur</option>
+                <option value="station">Station</option>
+                <option value="landmark">Lieu</option>
+              </select></label
+            >
+          </div>
+          <label for="payload"
+            >Payload éditable <span class="mono">application/json</span></label
+          ><textarea
+            id="payload"
+            spellcheck="false"
+            rows="16"
+            required
+          ></textarea>
+          <div class="composer-actions">
+            <button type="button" id="copy-payload">Copier</button
+            ><button type="submit" id="send-payload" class="primary">
+              Envoyer POST ↗
+            </button>
+          </div>
+          <p id="create-status" class="muted" role="status"></p>
+        </form>
+      </aside>
+    </main>
+    <section class="console" aria-label="Inspecteur HTTP">
+      <div class="console-bar">
+        <button id="console-toggle" aria-expanded="false">
+          <span class="console-icon">⌘</span> Request inspector
+          <span id="request-count" class="badge mono">0</span></button
+        ><span id="last-request" class="mono muted"
+          >En attente d’une requête</span
+        ><button id="copy-response" class="subtle">Copier JSON</button>
+      </div>
+      <div id="console-body" hidden>
+        <div id="requests" class="request-list"></div>
+        <div class="request-detail">
+          <div class="label-row">
+            <span id="request-meta" class="mono"></span
+            ><select id="inspect-mode" aria-label="Inspecter">
+              <option value="response">Réponse</option>
+              <option value="request">Payload envoyé</option>
+            </select>
+          </div>
+          <pre id="response-json" tabindex="0">{}</pre>
+        </div>
+      </div>
+    </section>
+    <dialog id="auth-dialog">
+      <form id="auth-form">
+        <span class="brand-icon">◈</span
+        ><span class="eyebrow">WELCOME TO CARTE</span>
+        <h2>Votre espace géospatial.</h2>
+        <p class="muted">
+          Connectez un compte ou une clé API pour explorer vos données.
+        </p>
+        <label for="auth-mode">Mode d’accès</label
+        ><select id="auth-mode">
+          <option value="session">Compte utilisateur</option>
+          <option value="key">Clé API Bearer</option>
+        </select>
+        <div id="account-fields">
+          <label for="username">Identifiant</label
+          ><input id="username" autocomplete="username" /><label for="password"
+            >Mot de passe</label
+          ><input
+            id="password"
+            type="password"
+            autocomplete="current-password"
+          />
+        </div>
+        <div id="key-fields" hidden>
+          <label for="api-key">Clé API</label
+          ><input id="api-key" type="password" autocomplete="off" />
+          <p class="muted">
+            Conservée en mémoire uniquement, jusqu’à la fermeture de la page.
+          </p>
+        </div>
+        <p id="auth-status" role="alert"></p>
+        <button type="submit" class="primary">Ouvrir l’explorateur ↗</button>
+        <div class="dialog-actions">
+          <button type="button" id="logout">Déconnexion</button
+          ><button type="button" id="auth-close">Fermer</button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast" class="toast" role="status" hidden></div>
+  </body>
+</html>
