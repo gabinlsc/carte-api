@@ -17,6 +17,10 @@ const state = {
   timer: null,
 };
 const api = new ApiClient(recordRequest);
+if (window.matchMedia('(max-width:760px)').matches) {
+  $('#sidebar').hidden = true;
+  $('#sidebar-open').hidden = false;
+}
 const cartography = createMap(onMapClick, () => {
   cartography.showRadius(Number($('#radius').value));
   if ($('#viewport').checked || Number($('#radius').value)) scheduleLoad();
